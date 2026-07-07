@@ -1,0 +1,22 @@
+{
+  "name": "dsatinder",
+  "version": "1.0.0",
+  "description": "tinder for problem solvers",
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "backend"
+  ],
+  "license": "ISC",
+  "author": "Indu Rani",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start":"nodemon src/app.js",
+    "dev":"nodemon src/app.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
