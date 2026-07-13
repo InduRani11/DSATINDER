@@ -9,19 +9,20 @@ const app = express();
 // })
 
 app.get("/test",(req,res)=>{
+    // if you request on /test?userid=123  then you can access the query parameter using req.query.userid
+    console.log(req.query.userid)
     res.send('Hello tests get request');
 })
 
-app.post("/test",(req,res)=>{
-    res.send('Hello tests post request');
+// this is dynamic route where you can pass parameter in the url like /test/123 and you can access the parameter using req.params.userid
+app.get("/test/:userid",(req,res)=>{
+     console.log(req.params.userid)
+    res.send('Hello tests get request');
 })
-app.delete("/test",(req,res)=>{
-    res.send('Hello tests delete request');
+app.get("/abc",(req,res)=>{
+    res.send('Hello tests get request');
 })
-// this will match all the http methods api call to /test
-app.use("/test",(req,res)=>{
-    res.send('Hello test');
-})
+
 
 app.listen(3000,()=>{
     console.log('Server is running on port 3000');
