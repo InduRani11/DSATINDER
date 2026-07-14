@@ -11,14 +11,8 @@ app.get("/admin/getallData",(req,res)=>{
 );
 
 app.get("/admin/deleteData",(req,res)=>{
-    const token="abc";
-    const isAuthorized = "abc" === token;
-    if(!isAuthorized){
-        return res.status(401).send("Unauthorized");
-    }else{
-        res.send("Welcome to Admin Delete Data Page");
-        }
-    }   
+    res.send("Welcome to Admin Delete Data Page");
+}
 );
 
 app.listen(3000,()=>{
