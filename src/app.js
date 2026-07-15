@@ -1,19 +1,31 @@
 const express =require('express');
 const app = express();
 
-const {adminAuth} =require('./middleware/auth.js');
+app.use("/",(err,req,res,next)=>{
+    if(err){
+        console.error(err.stack);
+        res.status(500).send('Internal Server Error');
+    }
+    
+});
 
-app.use("/admin",adminAuth);
-
-app.get("/admin/getallData",(req,res)=>{
-        res.send("Welcome to Admin Get All Data Page");
+app.get('/getuserdata',(req,res)=>{
+    try{
+        throw new Error('Something went wrong');
+        res.send('Hello World');
+    }catch(err){
+        res.status(500).send('Server Error');
     }   
-);
+     
+});
 
-app.get("/admin/deleteData",(req,res)=>{
-    res.send("Welcome to Admin Delete Data Page");
-}
-);
+app.use("/",(err,req,res,next)=>{
+    if(err){
+        console.error(err.stack);
+        res.status(500).send('Internal Server Error');
+    }
+    
+});
 
 app.listen(3000,()=>{
     console.log('Server is running on port 3000');
