@@ -44,7 +44,34 @@ app.get('/feed',async (req,res)=>{
         res.status(500).send('Error fetching users');
     }
 });
+app.delete('/user',async (req,res)=>{
+    const id=req.body.id;
+    try{
+       const user=await User.findByIdAndDelete(id);
+      if(user.length===0){
+        return res.status(404).send('User not found');
+      } 
+      else{
+        res.send('User deleted successfully');
+      } 
+    }catch(err){
+        res.status(500).send('Error deleting user');
+    }     
+});
 
+app.patch('/user',async (req,res)=>{
+    const id=req.body.id;
+    const update=req.body;
+    try{
+        const user=await User.findByIdAndUpdate(id,update,{new:true});
+        if(!user){
+            return res.status(404).send('User not found');
+        }
+        res.send(user);
+    }catch(err){
+        res.status(500).send('Error updating user');
+    }
+});
 
 conectDB().then(()=>{
     console.log('Database connected');
