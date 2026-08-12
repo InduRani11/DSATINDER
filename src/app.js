@@ -2,20 +2,23 @@ const express =require('express');
 const {conectDB}=require('./config/database');
 const app = express();
 const User = require('./models/user');
-
+const {validateSignupData}=require("./utils/validation");
 app.use(express.json());
 
 app.post('/signup',async (req,res)=>{
-    const userobj=req.body;
-    console.log(userobj);
-    // creating a new instance of user model
-    const user=new User(userobj);
-
+    // validate the request body
     try{
+        validateSignupData(req);
+        const userobj=req.body;
+        console.log(userobj);
+        // creating a new instance of user model
+        const user=new User(userobj);
+
+    
         await user.save();
         res.send('User created successfully');
     }catch(err){
-        res.status(500).send('Error creating user');
+        res.status(500).send('Error creating user:'+err.message);
     }
     
 });
@@ -59,17 +62,33 @@ app.delete('/user',async (req,res)=>{
     }     
 });
 
-app.patch('/user',async (req,res)=>{
-    const id=req.body.id;
-    const update=req.body;
+app.patch('/user/:userId',async (req,res)=>{ 
+// app.patch('/user',async (req,res)=>{
     try{
-        const user=await User.findByIdAndUpdate(id,update);
+        // const id=req.query.id;
+        const id=req.params?.userId;
+        const update=req.body;
+        const ALLOWED_UPDATES=[
+            'photoUrl','about','skills','gender','age'
+        ];
+
+        const isUpdateAllowed=Object.keys(update).every((updateKey)=>{
+            return ALLOWED_UPDATES.includes(updateKey);
+        });
+
+        if(!isUpdateAllowed){
+            throw new Error('Invalid updates');
+        }
+        const user=await User.findByIdAndUpdate(id,update,{
+            returnDocument:'after',
+            runValidators:true
+        });
         if(!user){
             return res.status(404).send('User not found');
         }
         res.send(user);
     }catch(err){
-        res.status(500).send('Error updating user');
+        res.status(500).send('Error updating user'+err.message  );
     }
 });
 
