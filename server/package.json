@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "db:push": "node node_modules/prisma/build/index.js db push",
+    "prisma:generate": "prisma generate",
     "seed": "npx ts-node prisma/seed.ts",
     "contest:create": "ts-node scripts/create-contest.ts"
   },
