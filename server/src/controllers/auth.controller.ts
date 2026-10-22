@@ -59,7 +59,7 @@ export const register = async (req: Request, res: Response) => {
         username: cleanUsername,
         email: cleanEmail,
         password: hashedPassword,
-        collegeId,
+        collegeId: college.id,
         profilePic: profilePic || null,
         bio: bio || null,
         totalPoints: 0,
@@ -100,12 +100,15 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Email/Username and password are required.' });
     }
 
-    const searchKey = String(rawIdentifier).toLowerCase().trim();
+    const searchKey = String(rawIdentifier).trim();
+    const lowerKey = searchKey.toLowerCase();
 
     const user = await prisma.user.findFirst({
       where: {
         OR: [
+          { email: lowerKey },
           { email: searchKey },
+          { username: lowerKey },
           { username: searchKey }
         ]
       },

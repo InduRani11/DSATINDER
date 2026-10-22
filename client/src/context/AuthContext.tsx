@@ -27,9 +27,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.get('/auth/me');
       setUser(res.data.user);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch user:', err);
-      logout();
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        logout();
+      }
     } finally {
       setIsLoading(false);
     }
@@ -43,12 +45,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('algorank_token', newToken);
     setToken(newToken);
     setUser(newUser);
+    setIsLoading(false);
   };
 
   const register = (newToken: string, newUser: User) => {
     localStorage.setItem('algorank_token', newToken);
     setToken(newToken);
     setUser(newUser);
+    setIsLoading(false);
   };
 
   const logout = () => {
