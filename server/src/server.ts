@@ -11,7 +11,15 @@ import leaderboardRoutes from './routes/leaderboard.routes';
 import profileRoutes from './routes/profile.routes';
 import contestRoutes from './routes/contest.routes';
 
+// Load environment variables with fallback paths
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../server/.env') });
 dotenv.config();
+
+if (!process.env.DATABASE_URL) {
+  const dbPath = path.resolve(__dirname, '../prisma/dev.db');
+  process.env.DATABASE_URL = `file:${dbPath}`;
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,11 +51,11 @@ app.use('/api/contests', contestRoutes);
 const clientDistPath = path.resolve(__dirname, '../../client/dist');
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) {
-      return next();
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api')) {
+      return res.sendFile(path.join(clientDistPath, 'index.html'));
     }
-    res.sendFile(path.join(clientDistPath, 'index.html'));
+    next();
   });
 }
 

@@ -32,10 +32,23 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'This username is already taken. Please choose another.' });
     }
 
-    // Verify college exists
-    const college = await prisma.college.findUnique({ where: { id: collegeId } });
+    // Verify college exists or auto-upsert from defaults
+    let college = await prisma.college.findUnique({ where: { id: collegeId } });
     if (!college) {
-      return res.status(400).json({ error: 'Selected college does not exist.' });
+      const defaultCol = DEFAULT_COLLEGES.find((c) => c.id === collegeId || c.code === collegeId);
+      if (defaultCol) {
+        college = await prisma.college.upsert({
+          where: { code: defaultCol.code },
+          update: {},
+          create: defaultCol
+        });
+      } else {
+        college = await prisma.college.upsert({
+          where: { code: DEFAULT_COLLEGES[0].code },
+          update: {},
+          create: DEFAULT_COLLEGES[0]
+        });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -194,14 +207,40 @@ export const getMe = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const DEFAULT_COLLEGES = [
+  { id: "de90ed94-a376-4b13-8e4f-41f228384573", name: "COER University", city: "Roorkee", state: "Uttarakhand", country: "India", code: "COER" },
+  { id: "bdb2075a-4498-426b-b450-31a3e4d56fd9", name: "Indian Institute of Technology Delhi", city: "New Delhi", state: "Delhi", country: "India", code: "IITD" },
+  { id: "b3c3932e-c2ee-4dfa-846e-f1b7e42f2e52", name: "Indian Institute of Technology Bombay", city: "Mumbai", state: "Maharashtra", country: "India", code: "IITB" },
+  { id: "c35ebea0-053f-4fff-a0d7-eec128c9268f", name: "BITS Pilani", city: "Pilani", state: "Rajasthan", country: "India", code: "BITS" },
+  { id: "0d470e49-1872-4c4a-916a-dd3f01ab997f", name: "National Institute of Technology Jaipur", city: "Jaipur", state: "Rajasthan", country: "India", code: "NITJ" },
+  { id: "70e8519d-f5ab-43c9-a4dd-93ce10853e50", name: "Delhi Technological University", city: "New Delhi", state: "Delhi", country: "India", code: "DTU" },
+  { id: "07c8441e-779b-4f93-b745-e0efbf911999", name: "International Institute of Information Technology Hyderabad", city: "Hyderabad", state: "Telangana", country: "India", code: "IIITH" },
+  { id: "ac80d02f-d040-484b-adbb-f45ddd5873a7", name: "Massachusetts Institute of Technology", city: "Cambridge", state: "Massachusetts", country: "USA", code: "MIT" },
+  { id: "fe15978d-53d0-40bb-81e4-3c7c4520cfc7", name: "Stanford University", city: "Stanford", state: "California", country: "USA", code: "STAN" },
+  { id: "6884e7ea-5e16-4991-9ecf-fe94c246d6ad", name: "Harvard University", city: "Cambridge", state: "Massachusetts", country: "USA", code: "HARV" }
+];
+
 export const getColleges = async (_req: Request, res: Response) => {
   try {
-    const colleges = await prisma.college.findMany({
+    let colleges = await prisma.college.findMany({
       orderBy: { name: 'asc' }
     });
-    return res.json({ colleges });
+
+    if (!colleges || colleges.length === 0) {
+      // Auto-populate default colleges if DB was newly created on cloud
+      for (const col of DEFAULT_COLLEGES) {
+        await prisma.college.upsert({
+          where: { code: col.code },
+          update: {},
+          create: col
+        }).catch(() => {});
+      }
+      colleges = await prisma.college.findMany({ orderBy: { name: 'asc' } });
+    }
+
+    return res.json({ colleges: colleges.length > 0 ? colleges : DEFAULT_COLLEGES });
   } catch (error: any) {
-    console.error('GetColleges error:', error);
-    return res.status(500).json({ error: 'Failed to fetch colleges' });
+    console.warn('GetColleges warning, serving default colleges list:', error?.message);
+    return res.json({ colleges: DEFAULT_COLLEGES });
   }
 };

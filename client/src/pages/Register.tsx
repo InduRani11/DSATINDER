@@ -5,18 +5,30 @@ import api from '../services/api';
 import type { College } from '../types';
 import { UserPlus, Building2, Lock, Mail, User, ShieldAlert } from 'lucide-react';
 
+const DEFAULT_COLLEGES: College[] = [
+  { id: "de90ed94-a376-4b13-8e4f-41f228384573", name: "COER University", city: "Roorkee", state: "Uttarakhand", country: "India", code: "COER" },
+  { id: "bdb2075a-4498-426b-b450-31a3e4d56fd9", name: "Indian Institute of Technology Delhi", city: "New Delhi", state: "Delhi", country: "India", code: "IITD" },
+  { id: "b3c3932e-c2ee-4dfa-846e-f1b7e42f2e52", name: "Indian Institute of Technology Bombay", city: "Mumbai", state: "Maharashtra", country: "India", code: "IITB" },
+  { id: "c35ebea0-053f-4fff-a0d7-eec128c9268f", name: "BITS Pilani", city: "Pilani", state: "Rajasthan", country: "India", code: "BITS" },
+  { id: "0d470e49-1872-4c4a-916a-dd3f01ab997f", name: "National Institute of Technology Jaipur", city: "Jaipur", state: "Rajasthan", country: "India", code: "NITJ" },
+  { id: "70e8519d-f5ab-43c9-a4dd-93ce10853e50", name: "Delhi Technological University", city: "New Delhi", state: "Delhi", country: "India", code: "DTU" },
+  { id: "07c8441e-779b-4f93-b745-e0efbf911999", name: "International Institute of Information Technology Hyderabad", city: "Hyderabad", state: "Telangana", country: "India", code: "IIITH" },
+  { id: "ac80d02f-d040-484b-adbb-f45ddd5873a7", name: "Massachusetts Institute of Technology", city: "Cambridge", state: "Massachusetts", country: "USA", code: "MIT" },
+  { id: "fe15978d-53d0-40bb-81e4-3c7c4520cfc7", name: "Stanford University", city: "Stanford", state: "California", country: "USA", code: "STAN" },
+  { id: "6884e7ea-5e16-4991-9ecf-fe94c246d6ad", name: "Harvard University", city: "Cambridge", state: "Massachusetts", country: "USA", code: "HARV" }
+];
+
 export const Register: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const [colleges, setColleges] = useState<College[]>([]);
-  const [loadingColleges, setLoadingColleges] = useState(true);
+  const [colleges, setColleges] = useState<College[]>(DEFAULT_COLLEGES);
   const [formData, setFormData] = useState({
     name: '',
     username: '',
     email: '',
     password: '',
-    collegeId: ''
+    collegeId: DEFAULT_COLLEGES[0].id
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +36,6 @@ export const Register: React.FC = () => {
 
   useEffect(() => {
     const fetchColleges = async () => {
-      setLoadingColleges(true);
       try {
         let collegeList: College[] = [];
         try {
@@ -34,14 +45,12 @@ export const Register: React.FC = () => {
           const res = await api.get('/colleges');
           collegeList = res.data.colleges || [];
         }
-        setColleges(collegeList);
         if (collegeList.length > 0) {
+          setColleges(collegeList);
           setFormData((prev) => ({ ...prev, collegeId: prev.collegeId || collegeList[0].id }));
         }
       } catch (err) {
-        console.error('Failed to load colleges:', err);
-      } finally {
-        setLoadingColleges(false);
+        console.warn('Using default fallback colleges:', err);
       }
     };
 
@@ -147,9 +156,6 @@ export const Register: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-slate-800 font-bold">Select College / Institution</label>
-                {loadingColleges && (
-                  <span className="text-[11px] text-blue-600 animate-pulse font-normal">Loading colleges...</span>
-                )}
               </div>
               <div className="relative">
                 <Building2 className="w-4 h-4 text-blue-600 absolute left-3 top-2.5 pointer-events-none" />
@@ -157,24 +163,17 @@ export const Register: React.FC = () => {
                   required
                   value={formData.collegeId}
                   onChange={(e) => setFormData({ ...formData, collegeId: e.target.value })}
-                  disabled={loadingColleges || colleges.length === 0}
-                  className="w-full bg-white border-2 border-slate-300 hover:border-slate-400 rounded-lg px-3.5 py-2.5 pl-9 pr-8 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100 transition-all cursor-pointer shadow-xs"
+                  className="w-full bg-white border-2 border-slate-300 hover:border-slate-400 rounded-lg px-3.5 py-2.5 pl-9 pr-8 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer shadow-xs"
                 >
-                  {colleges.length === 0 ? (
-                    <option value="" disabled className="text-slate-500 bg-white">
-                      {loadingColleges ? 'Loading available colleges...' : 'No colleges found'}
+                  {colleges.map((c) => (
+                    <option
+                      key={c.id}
+                      value={c.id}
+                      className="bg-white text-slate-900 font-medium py-1.5"
+                    >
+                      {c.name} ({c.code}) — {c.city}, {c.state || c.country}
                     </option>
-                  ) : (
-                    colleges.map((c) => (
-                      <option
-                        key={c.id}
-                        value={c.id}
-                        className="bg-white text-slate-900 font-medium py-1.5"
-                      >
-                        {c.name} ({c.code}) — {c.city}, {c.state || c.country}
-                      </option>
-                    ))
-                  )}
+                  ))}
                 </select>
               </div>
               <p className="text-[10px] text-slate-500 mt-1">
