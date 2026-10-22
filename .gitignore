@@ -14,6 +14,7 @@ server/dist/
 .env.*.local
 server/.env
 !server/.env.example
+config/database.js
 
 # Database temp/journal files
 *.db-journal

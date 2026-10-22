@@ -1,11 +1,11 @@
 {
   "name": "dsatinder",
   "version": "1.0.0",
-  "description": "AlgoRank / DSATinder - Competitive Programming & DSA Platform with College Leaderboards",
+  "description": "DSATinder / AlgoRank - Full-stack Competitive Programming & DSA Platform with College Leaderboards",
   "author": "Indu Rani",
   "license": "MIT",
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev": "npm run dev --prefix server",
     "dev:server": "npm run dev --prefix server",
     "dev:client": "npm run dev --prefix client",
     "build": "npm run build --prefix client && npm run build --prefix server",
