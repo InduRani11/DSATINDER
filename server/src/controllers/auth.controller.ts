@@ -93,13 +93,14 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { emailOrUsername, password } = req.body;
+    const rawIdentifier = req.body.emailOrUsername || req.body.email || req.body.username;
+    const password = req.body.password;
 
-    if (!emailOrUsername || !password) {
+    if (!rawIdentifier || !password) {
       return res.status(400).json({ error: 'Email/Username and password are required.' });
     }
 
-    const searchKey = emailOrUsername.toLowerCase().trim();
+    const searchKey = String(rawIdentifier).toLowerCase().trim();
 
     const user = await prisma.user.findFirst({
       where: {

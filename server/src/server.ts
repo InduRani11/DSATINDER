@@ -29,7 +29,46 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-import { getColleges } from './controllers/auth.controller';
+import { getColleges, DEFAULT_COLLEGES } from './controllers/auth.controller';
+import bcrypt from 'bcryptjs';
+import prisma from './utils/prisma';
+
+async function seedDemoDataIfEmpty() {
+  try {
+    for (const col of DEFAULT_COLLEGES) {
+      await prisma.college.upsert({
+        where: { code: col.code },
+        update: {},
+        create: col
+      }).catch(() => {});
+    }
+
+    const demoEmail = 'student@coer.ac.in';
+    const existing = await prisma.user.findFirst({
+      where: { OR: [{ email: demoEmail }, { username: 'indurani' }] }
+    });
+
+    if (!existing) {
+      const hash = await bcrypt.hash('password123', 10);
+      await prisma.user.create({
+        data: {
+          name: 'Indu Rani',
+          username: 'indurani',
+          email: demoEmail,
+          password: hash,
+          collegeId: 'de90ed94-a376-4b13-8e4f-41f228384573',
+          totalPoints: 120,
+          solvedCount: 5,
+          currentStreak: 3,
+          longestStreak: 7
+        }
+      });
+      console.log('🌱 Demo user ready (indurani / password123)');
+    }
+  } catch (err: any) {
+    console.warn('Seed verification warning:', err?.message);
+  }
+}
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
@@ -65,6 +104,7 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   res.status(500).json({ error: 'Internal Server Error', message: err.message });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 AlgoRank API Server running on http://localhost:${PORT}`);
+  await seedDemoDataIfEmpty();
 });
